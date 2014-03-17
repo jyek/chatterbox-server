@@ -32,17 +32,9 @@ module.exports.handleRequest = function(request, response) {
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
   var parsedUrl = url.parse(request.url, true);
-  console.log(parsedUrl);
-  if(false && request.url.match(/\/1\/classes\/chatterbox/)){
-    var params = request.url.replace(/.*[?]/,'');
-    params = params.split('&');
-    pairs = {};
-    _.each(params, function(param){
-      var keyValue = param.split('=');
-      pairs[keyValue[0]] = keyValue[1];
-    });
-    response.end(JSON.stringify(pairs));
-  } else if(false){
+  if(parsedUrl.pathname === '/1/classes/chatterbox'){
+    response.end(JSON.stringify(parsedUrl.query));
+  } else {
     response.end("not a good request");
   }
 };
