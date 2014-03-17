@@ -186,6 +186,8 @@ span.friend-name {
 }
 
 .msg-text {
+  word-wrap: break-word;
+  max-width: 100%;
   float: left;
 }
 
