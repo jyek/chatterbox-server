@@ -7,6 +7,30 @@ var _ = require('underscore');
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
+var bootstrapCounter = 0;
+var bootstrapData = function(){
+  function makeid(n){
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for( var i=0; i < n; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;}
+  var today = (new Date()).toISOString();
+  return {
+    username: makeid(10),
+    text: makeid(20),
+    roomname: 'Justin',
+    createdAt: today,
+    updatedAt: today,
+    objectId: bootstrapCounter++
+  };
+};
+
+var getBoostrapData = function(n){
+  for(var result=[], i = 0 ; i < n ; result[i++]=bootstrapData());
+  return {results: result};
+};
+
 module.exports.handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
@@ -22,7 +46,7 @@ module.exports.handleRequest = function(request, response) {
    * below about CORS. */
   var headers = defaultCorsHeaders;
 
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
 
   /* .writeHead() tells our server what HTTP status code to send back */
   response.writeHead(statusCode, headers);
@@ -32,8 +56,14 @@ module.exports.handleRequest = function(request, response) {
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
   var parsedUrl = url.parse(request.url, true);
-  if(parsedUrl.pathname === '/1/classes/chatterbox'){
-    response.end(JSON.stringify(parsedUrl.query));
+  var isValidPath = parsedUrl.pathname === '/1/classes/chatterbox';
+  console.log(parsedUrl);
+  if(request.method === 'GET' && isValidPath){
+    var results = getBoostrapData(20);
+    response.end(JSON.stringify(results));
+    // GET w/o WHERE, & GET w/ WHERE
+  } else if(request.method === 'POST' && isValidPath){
+    response.end(JSON.stringify(parsedUrl.query)); // <-- TO DO
   } else {
     response.end("not a good request");
   }

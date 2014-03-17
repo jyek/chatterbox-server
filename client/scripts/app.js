@@ -130,7 +130,7 @@ ChatView.prototype.addMessage = function(msg, context){
 /* App */
 var App = function() {
   // RESTful API
-  this.server = 'https://api.parse.com/1/classes/chatterbox';
+  this.server = 'http://127.0.0.1:3000/1/classes/chatterbox';
 
   // Current roomname
   this.roomname = '';
@@ -160,7 +160,7 @@ App.prototype.init = function(){
   context.changeRoom('');
 
   // periodically get new messages
-  setInterval($.proxy(context.fetch, context, {data: $.proxy(context.fetchData, context)}), 5000);
+  setInterval($.proxy(context.fetch, context, {data: $.proxy(context.fetchData, context)}), 20000);
 
   // return home
   $('.chat-home').on('click', function(){
