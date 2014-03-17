@@ -7,8 +7,12 @@ var _ = require('underscore');
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
-var bootstrapCounter = 0;
-var bootstrapData = function(){
+/*****************************************************************************
+ Database
+*****************************************************************************/
+var inMemoryCounter = 0;
+var inMemoryDatabase = {};
+var makeBootstrapData = function(){
   function makeid(n){
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -22,14 +26,20 @@ var bootstrapData = function(){
     roomname: 'Justin',
     createdAt: today,
     updatedAt: today,
-    objectId: bootstrapCounter++
+    objectId: inMemoryCounter++
   };
 };
 
-var getBoostrapData = function(n){
-  for(var result=[], i = 0 ; i < n ; result[i++]=bootstrapData());
-  return {results: result};
+var loadBoostrapData = function(n){
+  for(var result=[], i = 0 ; i < n ; result[i++] = makeBootstrapData());
+  inMemoryDatabase = {results: result};
+  return inMemoryDatabase;
 };
+
+loadBoostrapData(20);
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
 
 module.exports.handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
@@ -59,8 +69,7 @@ module.exports.handleRequest = function(request, response) {
   var isValidPath = parsedUrl.pathname === '/1/classes/chatterbox';
   console.log(parsedUrl);
   if(request.method === 'GET' && isValidPath){
-    var results = getBoostrapData(20);
-    response.end(JSON.stringify(results));
+    response.end(JSON.stringify(inMemoryDatabase));
     // GET w/o WHERE, & GET w/ WHERE
   } else if(request.method === 'POST' && isValidPath){
     response.end(JSON.stringify(parsedUrl.query)); // <-- TO DO

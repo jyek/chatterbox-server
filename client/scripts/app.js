@@ -160,7 +160,7 @@ App.prototype.init = function(){
   context.changeRoom('');
 
   // periodically get new messages
-  setInterval($.proxy(context.fetch, context, {data: $.proxy(context.fetchData, context)}), 20000);
+  setInterval($.proxy(context.fetch, context, {data: $.proxy(context.fetchData, context)}), 5000);
 
   // return home
   $('.chat-home').on('click', function(){
