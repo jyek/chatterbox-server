@@ -1,3 +1,5 @@
+var url = require('url');
+var _ = require('underscore');
 /* You should implement your request handler function in this file.
  * And hey! This is already getting passed to http.createServer()
  * in basic-server.js. But it won't work as is.
@@ -5,7 +7,7 @@
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
-var handleRequest = function(request, response) {
+module.exports.handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
 
@@ -29,7 +31,20 @@ var handleRequest = function(request, response) {
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  response.end("Hello, World!");
+  var parsedUrl = url.parse(request.url, true);
+  console.log(parsedUrl);
+  if(false && request.url.match(/\/1\/classes\/chatterbox/)){
+    var params = request.url.replace(/.*[?]/,'');
+    params = params.split('&');
+    pairs = {};
+    _.each(params, function(param){
+      var keyValue = param.split('=');
+      pairs[keyValue[0]] = keyValue[1];
+    });
+    response.end(JSON.stringify(pairs));
+  } else if(false){
+    response.end("not a good request");
+  }
 };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
