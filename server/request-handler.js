@@ -13,6 +13,8 @@ var _ = require('underscore');
 var inMemoryCounter = 0;
 var inMemoryDatabase = {};
 var makeBootstrapData = function(){
+  var name = ['Fabrice','Justin','Rob','Cho','William'];
+  var randomName = Math.floor(name.length * Math.random());
   function makeid(n){
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -21,9 +23,9 @@ var makeBootstrapData = function(){
     return text;}
   var today = (new Date()).toISOString();
   return {
-    username: makeid(10),
+    username: name[randomName],
     text: makeid(20),
-    roomname: 'Justin',
+    roomname: name[randomName],
     createdAt: today,
     updatedAt: today,
     objectId: inMemoryCounter++
