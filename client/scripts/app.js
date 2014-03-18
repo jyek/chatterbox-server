@@ -130,7 +130,7 @@ ChatView.prototype.addMessage = function(msg, context){
 /* App */
 var App = function() {
   // RESTful API
-  this.server = 'http://127.0.0.1:3000/1/classes/chatterbox';
+  this.server = 'http://127.0.0.1:3000/classes/messages';
 
   // Current roomname
   this.roomname = '';

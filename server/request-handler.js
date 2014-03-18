@@ -13,37 +13,50 @@ var _ = require('underscore');
 var inMemoryCounter = 0;
 var inMemoryDatabase = {};
 var makeBootstrapData = function(){
-  var name = ['Fabrice','Justin','Rob','Cho','William'];
-  var randomName = Math.floor(name.length * Math.random());
-  function makeid(n){
-    var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for( var i=0; i < n; i++ )
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    return text;}
+  // random message generator from twittler @ hackreactor
+  var opening = ['just', '', '', '', '', 'ask me how i', 'completely', 'nearly', 'productively', 'efficiently', 'last night i', 'the president', 'that wizard', 'a ninja', 'a seedy old man'];
+  var verbs = ['drank', 'drunk', 'deployed', 'got', 'developed', 'built', 'invented', 'experienced', 'fought off', 'hardened', 'enjoyed', 'developed', 'consumed', 'debunked', 'drugged', 'doped', 'made', 'wrote', 'saw'];
+  var objects = ['my', 'your', 'the', 'a', 'my', 'an entire', 'this', 'that', 'the', 'the big', 'a new form of'];
+  var nouns = ['cat', 'koolaid', 'system', 'city', 'worm', 'cloud', 'potato', 'money', 'way of life', 'belief system', 'security system', 'bad decision', 'future', 'life', 'pony', 'mind'];
+  var tags = ['#techlife', '#burningman', '#sf', 'but only i know how', 'for real', '#sxsw', '#ballin', '#omg', '#yolo', '#magic', '', '', '', ''];
+
+  // utility function from twittler @ hackreactor
+  var randomElement = function(array){
+    var randomIndex = Math.floor(Math.random() * array.length);
+    return array[randomIndex];
+  };
+
+  var randomMessage = function(){
+    return [randomElement(opening), randomElement(verbs), randomElement(objects), randomElement(nouns), randomElement(tags)].join(' ');
+  };
+  var names = ['Fabrice','Justin','Rob','Cho','William'];
+  var rooms = ['Rain','Rainbow','Moon','Sun','Stars','Comets','Planets'];
+  var randomName = randomElement(names);
+  var randomRoom = randomElement(rooms);
   var today = (new Date()).toISOString();
+
   return {
-    username: name[randomName],
-    text: makeid(20),
-    roomname: name[randomName],
+    username: randomName,
+    text: randomMessage(),
+    roomname: randomRoom,
     createdAt: today,
     updatedAt: today,
     objectId: inMemoryCounter++
   };
 };
 
-var loadBoostrapData = function(n){
-  for(var result=[], i = 0 ; i < n ; result[i++] = makeBootstrapData());
+var loadBootstrapData = function(n){
+  for(var result = [], i = 0; i < n ; result[i++] = makeBootstrapData());
   inMemoryDatabase = {results: result};
   return inMemoryDatabase;
 };
 
-loadBoostrapData(2);
+loadBootstrapData(5);
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/
 
-module.exports.handleRequest = function(request, response) {
+exports.handler = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
 
@@ -52,7 +65,13 @@ module.exports.handleRequest = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-  var statusCode = 200;
+  var statusCode = 404;
+  var result = {results:[]};
+  var parsedUrl = url.parse(request.url, true);
+  var thePath = parsedUrl.pathname;
+  var theMethod = request.method;
+  var query = parsedUrl.query;
+  var returnData = inMemoryDatabase.results.slice(0);
 
   /* Without this line, this server wouldn't work. See the note
    * below about CORS. */
@@ -64,15 +83,10 @@ module.exports.handleRequest = function(request, response) {
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  var parsedUrl = url.parse(request.url, true);
-  var isValidPath = parsedUrl.pathname === '/1/classes/chatterbox';
-  if(request.method === 'OPTIONS'){
-    /* .writeHead() tells our server what HTTP status code to send back */
-    response.writeHead(statusCode, headers);
-    response.end();
-  } else if(request.method === 'GET' && isValidPath){
-    var returnData = inMemoryDatabase.results.slice(0);
-    var query = parsedUrl.query;
+  if(theMethod === 'OPTIONS'){
+    statusCode = 200;
+  } else if(theMethod === 'GET' && thePath === '/classes/messages'){
+    statusCode = 200;
     if (query.order === '-createdAt'){
       returnData.reverse();
     }
@@ -87,15 +101,15 @@ module.exports.handleRequest = function(request, response) {
         return isEqual;
       });
     }
-
-    response.writeHead(statusCode, headers);
-    response.end(JSON.stringify({results: returnData}));
-  } else if(request.method === 'POST' && isValidPath){
-    response.writeHead(statusCode, headers);
+    result['results'] = returnData;
+  } else if(theMethod === 'GET' && thePath === '/classes/room1'){
+    statusCode = 200;
+    result = inMemoryDatabase;
+  } else if(theMethod === 'POST' && (thePath === '/classes/messages' || thePath === '/classes/room1')){
+    statusCode = 201;
     var responseString = '';
 
     request.on('data', function(data){
-      console.log(data);
       responseString += data;
     });
 
@@ -106,12 +120,10 @@ module.exports.handleRequest = function(request, response) {
       aResponse.objectId = inMemoryCounter++;
       inMemoryDatabase.results.push(aResponse);
     });
-    response.end(JSON.stringify({}));
-
-  } else {
-    console.log('I am in the else statuement!!'+isValidPath+request.method);
-    response.end("not a good request");
+    result = inMemoryDatabase;
   }
+  response.writeHead(statusCode, headers);
+  response.end(JSON.stringify(result));
 };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
