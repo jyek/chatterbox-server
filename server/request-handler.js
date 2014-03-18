@@ -1,5 +1,7 @@
 var url = require('url');
 var _ = require('underscore');
+var memory = require('./bootstrapData.js');
+
 /* You should implement your request handler function in this file.
  * And hey! This is already getting passed to http.createServer()
  * in basic-server.js. But it won't work as is.
@@ -7,54 +9,17 @@ var _ = require('underscore');
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
-/*****************************************************************************
- Database
-*****************************************************************************/
-var inMemoryCounter = 0;
-var inMemoryDatabase = {};
-var makeBootstrapData = function(){
-  // random message generator from twittler @ hackreactor
-  var opening = ['just', '', '', '', '', 'ask me how i', 'completely', 'nearly', 'productively', 'efficiently', 'last night i', 'the president', 'that wizard', 'a ninja', 'a seedy old man'];
-  var verbs = ['drank', 'drunk', 'deployed', 'got', 'developed', 'built', 'invented', 'experienced', 'fought off', 'hardened', 'enjoyed', 'developed', 'consumed', 'debunked', 'drugged', 'doped', 'made', 'wrote', 'saw'];
-  var objects = ['my', 'your', 'the', 'a', 'my', 'an entire', 'this', 'that', 'the', 'the big', 'a new form of'];
-  var nouns = ['cat', 'koolaid', 'system', 'city', 'worm', 'cloud', 'potato', 'money', 'way of life', 'belief system', 'security system', 'bad decision', 'future', 'life', 'pony', 'mind'];
-  var tags = ['#techlife', '#burningman', '#sf', 'but only i know how', 'for real', '#sxsw', '#ballin', '#omg', '#yolo', '#magic', '', '', '', ''];
-
-  // utility function from twittler @ hackreactor
-  var randomElement = function(array){
-    var randomIndex = Math.floor(Math.random() * array.length);
-    return array[randomIndex];
-  };
-
-  var randomMessage = function(){
-    return [randomElement(opening), randomElement(verbs), randomElement(objects), randomElement(nouns), randomElement(tags)].join(' ');
-  };
-  var names = ['Fabrice','Justin','Rob','Cho','William'];
-  var rooms = ['Rain','Rainbow','Moon','Sun','Stars','Comets','Planets'];
-  var randomName = randomElement(names);
-  var randomRoom = randomElement(rooms);
-  var today = (new Date()).toISOString();
-
-  return {
-    username: randomName,
-    text: randomMessage(),
-    roomname: randomRoom,
-    createdAt: today,
-    updatedAt: today,
-    objectId: inMemoryCounter++
-  };
+/* These headers will allow Cross-Origin Resource Sharing (CORS).
+ * This CRUCIAL code allows this server to talk to websites that
+ * are on different domains. (Your chat client is running from a url
+ * like file://your/chat/client/index.html, which is considered a
+ * different domain.) */
+var defaultCorsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "content-type, accept",
+  "access-control-max-age": 10 // Seconds.
 };
-
-var loadBootstrapData = function(n){
-  for(var result = [], i = 0; i < n ; result[i++] = makeBootstrapData());
-  inMemoryDatabase = {results: result};
-  return inMemoryDatabase;
-};
-
-loadBootstrapData(5);
-/*****************************************************************************/
-/*****************************************************************************/
-/*****************************************************************************/
 
 exports.handler = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
@@ -71,7 +36,7 @@ exports.handler = function(request, response) {
   var thePath = parsedUrl.pathname;
   var theMethod = request.method;
   var query = parsedUrl.query;
-  var returnData = inMemoryDatabase.results.slice(0);
+  var returnData = memory.database.results.slice(0);
 
   /* Without this line, this server wouldn't work. See the note
    * below about CORS. */
@@ -104,7 +69,7 @@ exports.handler = function(request, response) {
     result['results'] = returnData;
   } else if(theMethod === 'GET' && thePath === '/classes/room1'){
     statusCode = 200;
-    result = inMemoryDatabase;
+    result = memory.database;
   } else if(theMethod === 'POST' && (thePath === '/classes/messages' || thePath === '/classes/room1')){
     statusCode = 201;
     var responseString = '';
@@ -117,23 +82,11 @@ exports.handler = function(request, response) {
       var aResponse = JSON.parse(responseString);
       aResponse.createdAt = (new Date()).toISOString();
       aResponse.updatedAt = aResponse.createdAt;
-      aResponse.objectId = inMemoryCounter++;
-      inMemoryDatabase.results.push(aResponse);
+      aResponse.objectId = memory.counter++;
+      memory.database.results.push(aResponse);
     });
-    result = inMemoryDatabase;
+    result = memory.database;
   }
   response.writeHead(statusCode, headers);
   response.end(JSON.stringify(result));
-};
-
-/* These headers will allow Cross-Origin Resource Sharing (CORS).
- * This CRUCIAL code allows this server to talk to websites that
- * are on different domains. (Your chat client is running from a url
- * like file://your/chat/client/index.html, which is considered a
- * different domain.) */
-var defaultCorsHeaders = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10 // Seconds.
 };
