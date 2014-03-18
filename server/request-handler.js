@@ -62,8 +62,6 @@ module.exports.handleRequest = function(request, response) {
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  // CREATED AT + or -
-  // WHERE 
   var parsedUrl = url.parse(request.url, true);
   var isValidPath = parsedUrl.pathname === '/1/classes/chatterbox';
   if(request.method === 'OPTIONS'){
@@ -72,13 +70,24 @@ module.exports.handleRequest = function(request, response) {
     response.end();
   } else if(request.method === 'GET' && isValidPath){
     var returnData = inMemoryDatabase.results.slice(0);
-    if (parsedUrl.query.order === '-createdAt'){
+    var query = parsedUrl.query;
+    if (query.order === '-createdAt'){
       returnData.reverse();
+    }
+
+    if (query.hasOwnProperty('where')){
+      var where = JSON.parse(query.where);
+      returnData = _.filter(returnData, function(message){
+        var isEqual = true;
+        for (var key in where){
+          isEqual = isEqual && message[key] === where[key];
+        }
+        return isEqual;
+      });
     }
 
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify({results: returnData}));
-    // GET w/o WHERE, & GET w/ WHERE <-----------------
   } else if(request.method === 'POST' && isValidPath){
     response.writeHead(statusCode, headers);
     var responseString = '';

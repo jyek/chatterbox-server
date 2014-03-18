@@ -204,21 +204,24 @@ App.prototype.send = function(text, roomname){
 };
 
 App.prototype.fetchData = function(){
-  var data = '';
   console.log('fetchData this', this);
   this.loadingView.startLoading();
+  var data = {};
+  data['order'] = '-createdAt';
   if (this.roomname !== ''){
-    data = encodeURIComponent('where={"roomname":' + JSON.stringify(this.roomname) + '}');
+    data['where'] = JSON.stringify({'roomname': this.roomname});
   }
   return data;
 };
 
 App.prototype.fetch = function(options){
+  var theJsonData = options.data();
+  console.log(theJsonData);
   $.ajax({
     // always use this url
-    url: this.server + '?order=-createdAt',
+    url: this.server,
     type: 'GET',
-    data: options.data(),
+    data: theJsonData,
     contentType: 'application/json',
     success: function(data){
       events.trigger('fetch:success', data);
