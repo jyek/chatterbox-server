@@ -178,6 +178,7 @@ App.prototype.init = function(){
 };
 
 App.prototype.send = function(text, roomname){
+  var context = this;
   var message = {
     'username': this.username,
     'text': text,
@@ -190,12 +191,13 @@ App.prototype.send = function(text, roomname){
     type: 'POST',
     data: JSON.stringify(message),
     contentType: 'application/json',
-    success: function (data) {
+    success: function() {
       console.log('chatterbox: Message sent');
-      this.fetch({data: this.fetchData});
+      context.fetch({data: $.proxy(context.fetchData, context) });
     },
     error: function (data) {
       // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
+      console.log(data);
       console.error('chatterbox: Failed to send message');
     }
   });

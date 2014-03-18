@@ -36,7 +36,7 @@ var loadBoostrapData = function(n){
   return inMemoryDatabase;
 };
 
-loadBoostrapData(20);
+loadBoostrapData(2);
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/
@@ -58,22 +58,47 @@ module.exports.handleRequest = function(request, response) {
 
   headers['Content-Type'] = "application/json";
 
-  /* .writeHead() tells our server what HTTP status code to send back */
-  response.writeHead(statusCode, headers);
-
   /* Make sure to always call response.end() - Node will not send
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
+  // CREATED AT + or -
+  // WHERE 
   var parsedUrl = url.parse(request.url, true);
   var isValidPath = parsedUrl.pathname === '/1/classes/chatterbox';
-  console.log(parsedUrl);
-  if(request.method === 'GET' && isValidPath){
-    response.end(JSON.stringify(inMemoryDatabase));
-    // GET w/o WHERE, & GET w/ WHERE
+  if(request.method === 'OPTIONS'){
+    /* .writeHead() tells our server what HTTP status code to send back */
+    response.writeHead(statusCode, headers);
+    response.end();
+  } else if(request.method === 'GET' && isValidPath){
+    var returnData = inMemoryDatabase.results.slice(0);
+    if (parsedUrl.query.order === '-createdAt'){
+      returnData.reverse();
+    }
+
+    response.writeHead(statusCode, headers);
+    response.end(JSON.stringify({results: returnData}));
+    // GET w/o WHERE, & GET w/ WHERE <-----------------
   } else if(request.method === 'POST' && isValidPath){
-    response.end(JSON.stringify(parsedUrl.query)); // <-- TO DO
+    response.writeHead(statusCode, headers);
+    var responseString = '';
+
+    request.on('data', function(data){
+      console.log(data);
+      responseString += data;
+    });
+
+    request.on('end', function(){
+      var aResponse = JSON.parse(responseString);
+      aResponse.createdAt = (new Date()).toISOString();
+      aResponse.updatedAt = aResponse.createdAt;
+      aResponse.objectId = inMemoryCounter++;
+      inMemoryDatabase.results.push(aResponse);
+    });
+    response.end(JSON.stringify({}));
+
   } else {
+    console.log('I am in the else statuement!!'+isValidPath+request.method);
     response.end("not a good request");
   }
 };
