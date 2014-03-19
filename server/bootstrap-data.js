@@ -42,8 +42,8 @@ loadBootstrapData = function(n){
 
 filters = {
   'where':function(query, theDatabase){
-    var results = theDatabase.results || database.results.slice(0);
-    results = _.filter(results, function(message){
+    var results = theDatabase.results || database.results;
+    results = _.filter(results.slice(0), function(message){
       var isEqual = true;
       for (var key in query){
         isEqual = isEqual && message[key] === query[key];
@@ -53,7 +53,8 @@ filters = {
     return {results:results};
   },
   'order':function(query, theDatabase){
-    var results = theDatabase.results || database.results.slice(0);
+    var results = theDatabase.results || database.results;
+    results = results.slice(0);
     if(query === '-createdAt'){
       results.reverse();
     }
@@ -63,10 +64,8 @@ filters = {
 
 var filter = function(query){
   var data = database ;
-  console.log(query);
   if(query.where){
     data = filters['where'](JSON.parse(query.where), data);
-    console.log();
   }
   if(query.order){
     data = filters['order'](query.order, data);

@@ -18,7 +18,6 @@ var router = function(request, response){
   console.log("Serving request type "+request.method+" for url "+request.url);
   var parsedUrl = url.parse(request.url);
   var route = routes[parsedUrl.pathname];
-  console.log(parsedUrl);
   if( route ){
     route(request, response);
   } else {
