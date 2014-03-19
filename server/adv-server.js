@@ -9,8 +9,7 @@ var express = require('express');
 /*******************************************************************************/
 var app = express();
 var port = 3000;
-var ip = "23.97.67.147";
-app.listen(port, ip);
+app.listen(port);
 
 var logfile = fs.createWriteStream('./some-log.log', {flags:'a'});
 

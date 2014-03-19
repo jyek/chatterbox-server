@@ -6,4 +6,4 @@ server.configure(function(){
   server.use('/', express.static(httpServerRoot));
 });
 
-server.listen(3001, '23.97.67.147');
+server.listen(3001);
